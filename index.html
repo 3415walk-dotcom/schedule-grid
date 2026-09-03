@@ -1,0 +1,743 @@
+<title>스케줄 그리드</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#E9EDE9; --surface:#FFFFFF; --surface-2:#F1F4EF; --surface-3:#E4E9E2;
+  --ink:#1E2A22; --ink-soft:#5B6B60; --ink-faint:#8B978C;
+  --line:#D6DCD2; --line-strong:#C3CBBE;
+  --accent:#1F6F5C; --accent-soft:#DCEEE7; --accent-ink:#12463A;
+  --today:#D65B3A; --today-soft:#F7DFD5;
+  --danger:#B23B2E;
+  --proj-0:#1F6F5C; --proj-1:#4C5FAE; --proj-2:#8B4B78; --proj-3:#B9862E; --proj-4:#4E6A73; --proj-5:#9C5B52;
+  --shadow: 0 1px 2px rgba(30,42,34,.06), 0 6px 20px rgba(30,42,34,.07);
+  --row-h: 150px; --row-gap: 12px; --head-h: 60px; --day-w: 30px; --rail-w: 336px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131A16; --surface:#1B241E; --surface-2:#212B24; --surface-3:#293427;
+    --ink:#E8ECE5; --ink-soft:#9FAFA2; --ink-faint:#71806F;
+    --line:#2E3A31; --line-strong:#3C4A3F;
+    --accent:#48B096; --accent-soft:#1E332B; --accent-ink:#BFEBDD;
+    --today:#FF8A63; --today-soft:#3B2620;
+    --danger:#E8796A;
+    --proj-0:#48B096; --proj-1:#8B98D6; --proj-2:#C084AC; --proj-3:#DDB05C; --proj-4:#87ABB5; --proj-5:#D19288;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131A16; --surface:#1B241E; --surface-2:#212B24; --surface-3:#293427;
+  --ink:#E8ECE5; --ink-soft:#9FAFA2; --ink-faint:#71806F;
+  --line:#2E3A31; --line-strong:#3C4A3F;
+  --accent:#48B096; --accent-soft:#1E332B; --accent-ink:#BFEBDD;
+  --today:#FF8A63; --today-soft:#3B2620;
+  --danger:#E8796A;
+  --proj-0:#48B096; --proj-1:#8B98D6; --proj-2:#C084AC; --proj-3:#DDB05C; --proj-4:#87ABB5; --proj-5:#D19288;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0; height:100dvh; overflow:hidden; background:var(--bg); color:var(--ink);
+  font-family:'Noto Sans KR', system-ui, sans-serif; -webkit-font-smoothing:antialiased;
+}
+::selection{ background:var(--accent-soft); color:var(--accent-ink); }
+button{ font-family:inherit; cursor:pointer; }
+input, textarea{ font-family:inherit; color:var(--ink); }
+:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.mono{ font-family:'JetBrains Mono', ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+
+.board{ height:100%; display:flex; flex-direction:column; }
+
+.toolbar{
+  flex:0 0 auto; display:flex; align-items:baseline; gap:14px; padding:16px 22px;
+  border-bottom:1px solid var(--line); background:var(--surface);
+}
+.toolbar h1{
+  margin:0; font-family:'Gowun Batang', serif; font-weight:700; font-size:22px; letter-spacing:-.01em;
+}
+.toolbar .tagline{ font-size:12.5px; color:var(--ink-soft); flex:1; min-width:0; }
+.toolbar .today-badge{ font-size:12px; color:var(--ink-soft); white-space:nowrap; }
+.toolbar .today-badge b{ color:var(--accent); font-weight:600; }
+.readonly-pill{
+  font-size:11px; padding:3px 9px; border-radius:999px; background:var(--today-soft); color:var(--today);
+  font-weight:600;
+}
+
+.workspace{ flex:1; min-height:0; display:flex; overflow:hidden; }
+
+/* --- rail --- */
+.rail{ flex:0 0 var(--rail-w); width:var(--rail-w); display:flex; flex-direction:column; min-height:0;
+  border-right:1px solid var(--line); background:var(--surface); }
+.rail-head{ flex:0 0 var(--head-h); height:var(--head-h); display:flex; align-items:center; justify-content:space-between;
+  padding:0 18px; border-bottom:1px solid var(--line); }
+.rail-head .label{ font-size:11px; font-weight:600; letter-spacing:.06em; color:var(--ink-soft); text-transform:uppercase; }
+.rail-head .count{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-faint); }
+.rail-list{ flex:1; min-height:0; overflow-y:auto; padding:var(--row-gap) 12px 0; display:flex; flex-direction:column; gap:var(--row-gap); }
+.rail-list::-webkit-scrollbar{ width:8px; }
+.rail-list::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:4px; }
+
+.card{
+  flex:0 0 var(--row-h); height:var(--row-h); display:flex; flex-direction:column; gap:7px;
+  padding:12px 13px; border-radius:10px; background:var(--surface-2); border:1px solid var(--line);
+  position:relative;
+}
+.card .row1{ display:flex; align-items:center; gap:8px; min-width:0; }
+.card .dot{ width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+.card .name{ font-family:'Gowun Batang', serif; font-weight:700; font-size:15.5px; flex:1; min-width:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.card .example-chip{ font-size:9.5px; padding:1px 6px; border-radius:999px; background:var(--surface-3); color:var(--ink-faint); font-weight:600; letter-spacing:.02em; flex:0 0 auto; }
+.card .menu-btn{ border:none; background:transparent; color:var(--ink-faint); font-size:15px; padding:2px 4px; border-radius:6px; line-height:1; }
+.card .menu-btn:hover{ background:var(--surface-3); color:var(--ink); }
+.card .menu{ position:absolute; top:34px; right:10px; background:var(--surface); border:1px solid var(--line);
+  border-radius:8px; box-shadow:var(--shadow); z-index:20; overflow:hidden; min-width:104px; }
+.card .menu button{ display:block; width:100%; text-align:left; padding:8px 12px; border:none; background:none; font-size:12.5px; color:var(--ink); }
+.card .menu button:hover{ background:var(--surface-2); }
+.card .menu button.danger{ color:var(--danger); }
+
+.card .row2{ display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--ink-soft); }
+.card .dates{ display:flex; align-items:center; gap:4px; }
+.card .dates button{ border:none; background:none; padding:1px 4px; border-radius:4px; color:inherit; font:inherit; }
+.card .dates button:hover{ background:var(--surface-3); color:var(--ink); }
+.card .dday{ margin-left:auto; padding:1px 7px; border-radius:999px; font-weight:600; font-size:10.5px; }
+.card .dday.upcoming{ background:var(--surface-3); color:var(--ink-soft); }
+.card .dday.active{ background:var(--accent-soft); color:var(--accent-ink); }
+.card .dday.overdue{ background:var(--today-soft); color:var(--today); }
+.card .dday.done{ background:var(--accent); color:var(--surface); }
+.date-edit{ display:flex; align-items:center; gap:5px; }
+.date-edit input{ border:1px solid var(--line-strong); border-radius:5px; padding:2px 4px; font-size:11px; background:var(--surface); width:112px; }
+.date-edit button{ border:none; background:var(--accent); color:#fff; border-radius:5px; padding:2px 8px; font-size:11px; font-weight:600; }
+.date-edit .cancel{ background:none; color:var(--ink-soft); }
+
+.card .progress-track{ height:5px; border-radius:3px; background:var(--surface-3); overflow:hidden; flex:0 0 auto; }
+.card .progress-fill{ height:100%; border-radius:3px; }
+.card .progress-label{ font-size:10.5px; color:var(--ink-faint); }
+
+.card .checklist{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:2px; margin:0 -3px; padding:0 3px; }
+.check-item{ display:flex; align-items:center; gap:7px; padding:2.5px 0; font-size:12.5px; }
+.check-item input[type=checkbox]{ width:14px; height:14px; accent-color:var(--accent); flex:0 0 auto; }
+.check-item span{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.check-item.done span{ color:var(--ink-faint); text-decoration:line-through; }
+.check-item .rm{ border:none; background:none; color:var(--ink-faint); font-size:13px; opacity:0; padding:0 3px; flex:0 0 auto; }
+.check-item:hover .rm{ opacity:1; }
+.check-item .rm:hover{ color:var(--danger); }
+.check-add{ display:flex; align-items:center; gap:6px; padding-top:3px; }
+.check-add input{ flex:1; border:none; border-bottom:1px dashed var(--line-strong); background:none; font-size:12px; padding:2px 0; color:var(--ink); }
+.check-add input::placeholder{ color:var(--ink-faint); }
+
+.empty-rail{ padding:26px 16px; text-align:center; color:var(--ink-soft); font-size:13px; line-height:1.6; }
+
+/* --- add section --- */
+.add-section{ flex:0 0 auto; padding:12px; border-top:1px solid var(--line); }
+.add-btn{ width:100%; padding:10px; border-radius:9px; border:1px dashed var(--line-strong); background:none;
+  color:var(--accent); font-weight:600; font-size:13px; }
+.add-btn:hover{ background:var(--accent-soft); border-color:var(--accent); }
+.add-panel{ display:flex; flex-direction:column; gap:8px; }
+.add-panel textarea{ width:100%; min-height:108px; resize:vertical; border:1px solid var(--line-strong); border-radius:8px;
+  padding:9px 10px; font-size:12.5px; line-height:1.55; background:var(--surface); }
+.add-hint{ font-size:11px; color:var(--ink-faint); line-height:1.5; }
+.add-actions{ display:flex; gap:8px; }
+.btn-primary{ flex:1; border:none; background:var(--accent); color:#fff; padding:9px; border-radius:8px; font-weight:600; font-size:13px; }
+.btn-primary:disabled{ opacity:.55; cursor:default; }
+.btn-ghost{ border:1px solid var(--line-strong); background:none; color:var(--ink-soft); padding:9px 12px; border-radius:8px; font-size:13px; }
+.review{ display:flex; flex-direction:column; gap:8px; }
+.review label{ font-size:10.5px; font-weight:600; color:var(--ink-soft); letter-spacing:.03em; text-transform:uppercase; }
+.review input[type=text], .review input[type=date], .review textarea{
+  width:100%; border:1px solid var(--line-strong); border-radius:7px; padding:7px 9px; font-size:12.5px; background:var(--surface);
+}
+.review .date-pair{ display:flex; gap:8px; }
+.review .date-pair > div{ flex:1; }
+.review textarea{ min-height:76px; resize:vertical; line-height:1.5; }
+.field{ display:flex; flex-direction:column; gap:3px; }
+.thinking{ font-size:12px; color:var(--ink-soft); display:flex; align-items:center; gap:7px; }
+.spinner{ width:12px; height:12px; border-radius:50%; border:2px solid var(--line-strong); border-top-color:var(--accent); animation:spin .7s linear infinite; }
+@media (prefers-reduced-motion: reduce){ .spinner{ animation:none; } }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+.error-msg{ font-size:11.5px; color:var(--danger); }
+
+/* --- timeline --- */
+.timeline-panel{ flex:1; min-width:0; display:flex; flex-direction:column; min-height:0; overflow:hidden; background:var(--surface); }
+.timeline-head-wrap{ flex:0 0 var(--head-h); height:var(--head-h); overflow:hidden auto; border-bottom:1px solid var(--line); position:relative; }
+.timeline-head-wrap::-webkit-scrollbar{ display:none; }
+.timeline-head{ position:relative; height:100%; }
+.month-row{ display:flex; height:22px; }
+.month-cell{ flex:0 0 auto; border-right:1px solid var(--line); display:flex; align-items:center; padding-left:8px;
+  font-size:11px; font-weight:600; color:var(--ink-soft); font-family:'Gowun Batang',serif; }
+.day-row{ display:flex; height:calc(var(--head-h) - 22px); }
+.day-cell{ flex:0 0 var(--day-w); width:var(--day-w); display:flex; flex-direction:column; align-items:center; justify-content:center;
+  border-right:1px solid var(--line); gap:1px; }
+.day-cell .dnum{ font-size:11.5px; font-weight:600; }
+.day-cell .dwk{ font-size:8.5px; color:var(--ink-faint); }
+.day-cell.weekend{ background:var(--surface-2); }
+.day-cell.weekend .dnum{ color:var(--ink-faint); }
+.day-cell.today{ background:var(--accent-soft); }
+.day-cell.today .dnum{ color:var(--accent-ink); }
+.today-line-head{ position:absolute; top:0; bottom:0; width:2px; background:var(--today); z-index:3; }
+.today-flag{ position:absolute; bottom:-1px; left:3px; font-size:9px; font-weight:700; color:#fff; background:var(--today);
+  padding:1px 5px; border-radius:4px 4px 4px 0; white-space:nowrap; transform:translateY(100%); z-index:3; }
+
+.timeline-body-wrap{ flex:1; min-height:0; overflow:auto; position:relative; }
+.timeline-body-wrap::-webkit-scrollbar{ width:8px; height:8px; }
+.timeline-body-wrap::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:4px; }
+.timeline-rows{ position:relative; padding:var(--row-gap) 0 16px; }
+.week-line{ position:absolute; top:0; bottom:0; width:1px; background:var(--line); z-index:0; }
+.today-line-body{ position:absolute; top:0; bottom:0; width:2px; background:var(--today); z-index:1; }
+.gantt-row{ flex:0 0 var(--row-h); height:var(--row-h); position:relative; margin-bottom:var(--row-gap); }
+.gantt-row:last-child{ margin-bottom:0; }
+.bar{ position:absolute; top:50%; transform:translateY(-50%); height:38px; border-radius:8px; overflow:hidden;
+  box-shadow:var(--shadow); min-width:10px; }
+.bar-fill{ position:absolute; inset:0; opacity:.32; }
+.bar-track{ position:absolute; inset:0; display:flex; align-items:center; padding:0 10px; gap:6px; }
+.bar-label{ font-size:12px; font-weight:600; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-shadow:0 1px 2px rgba(0,0,0,.25); }
+.bar-pct{ margin-left:auto; font-size:10.5px; color:#fff; opacity:.9; flex:0 0 auto; }
+.empty-timeline-note{ position:absolute; top:16px; left:16px; font-size:12.5px; color:var(--ink-faint); }
+
+.toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--bg);
+  padding:9px 16px; border-radius:8px; font-size:12.5px; box-shadow:var(--shadow); z-index:100; opacity:0; pointer-events:none;
+  transition:opacity .2s ease; }
+.toast.show{ opacity:1; }
+
+@media (max-width: 760px){
+  .workspace{ flex-direction:column; }
+  .rail{ flex:0 0 42vh; width:100%; border-right:none; border-bottom:1px solid var(--line); }
+  .timeline-panel{ flex:1; }
+}
+</style>
+
+<script id="app-state" type="application/json">
+{"projects":[{"id":"p1","name":"가을 컨퍼런스 초청장 디자인","color":0,"start":"2026-08-16","end":"2026-09-05","example":true,"checklist":[{"id":"c1","text":"인쇄소 견적 비교","done":true},{"id":"c2","text":"컨셉 시안 3종 제작","done":true},{"id":"c3","text":"클라이언트 컨펌","done":true},{"id":"c4","text":"인쇄 데이터 최종 점검","done":true},{"id":"c5","text":"발송 리스트 정리","done":false}]},{"id":"p2","name":"모바일 앱 UX 개편","color":1,"start":"2026-09-09","end":"2026-10-31","example":true,"checklist":[{"id":"c6","text":"사용자 인터뷰 8건 진행","done":false},{"id":"c7","text":"정보구조(IA) 재설계","done":false},{"id":"c8","text":"핵심 플로우 와이어프레임","done":false},{"id":"c9","text":"프로토타입 사용성 테스트","done":false},{"id":"c10","text":"개발팀 핸드오프 문서화","done":false}]},{"id":"p3","name":"가을 캠페인 브랜드 리뉴얼","color":2,"start":"2026-07-25","end":"2026-12-07","example":true,"checklist":[{"id":"c11","text":"브랜드 리서치 및 경쟁사 분석","done":true},{"id":"c12","text":"컨셉 무드보드 3안","done":true},{"id":"c13","text":"네이밍 및 슬로건 확정","done":true},{"id":"c14","text":"클라이언트 1차 리뷰","done":false},{"id":"c15","text":"디자인 시스템 정리","done":false},{"id":"c16","text":"최종 가이드라인 납품","done":false}]}]}
+</script>
+
+<div id="app"></div>
+
+<script id="app-script">
+(function(){
+  "use strict";
+  var STATE = null;
+  var UI = { addOpen:false, step:'write', draft:null, menuOpen:null, editingDates:null, confirmDelete:null, busy:false };
+  var artifactCap = null, sampleCap = null;
+  var initialScrollDone = false;
+  var scrollLock = false;
+  var toastTimer = null;
+
+  var PROJ_COLORS = ['var(--proj-0)','var(--proj-1)','var(--proj-2)','var(--proj-3)','var(--proj-4)','var(--proj-5)'];
+
+  // ---------- date helpers ----------
+  function pad(n){ return n<10 ? '0'+n : ''+n; }
+  function toISO(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function fromISO(s){ var p=s.split('-').map(Number); return new Date(p[0], p[1]-1, p[2]); }
+  function todayDate(){ var d=new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function addDays(d, n){ var r=new Date(d); r.setDate(r.getDate()+n); return r; }
+  function addMonths(d, n){ var r=new Date(d); r.setMonth(r.getMonth()+n); return r; }
+  function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+  function endOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
+  function diffDays(a,b){ return Math.round((b-a)/86400000); }
+  function fmtMD(d){ return pad(d.getMonth()+1)+'.'+pad(d.getDate()); }
+  function fmtMonthLabel(d){ return d.getFullYear()+'년 '+(d.getMonth()+1)+'월'; }
+  var WK = ['일','월','화','수','목','금','토'];
+
+  // ---------- state io ----------
+  function loadState(){
+    var fallback = null;
+    try{
+      var raw = document.getElementById('app-state').textContent;
+      fallback = JSON.parse(raw);
+    }catch(e){ fallback = { projects: [] }; }
+    try{
+      var local = localStorage.getItem('scheduleGridState');
+      if(local){ return JSON.parse(local); }
+    }catch(e){}
+    return fallback;
+  }
+  function persistLocal(){
+    try{ localStorage.setItem('scheduleGridState', JSON.stringify(STATE)); }catch(e){}
+  }
+  function syncStateScript(){
+    var json = JSON.stringify(STATE).replace(/</g,'\\u003c');
+    document.getElementById('app-state').textContent = json;
+  }
+  function buildDocument(){
+    var head = document.head.innerHTML;
+    var scriptTag = document.getElementById('app-script').outerHTML;
+    return '<!doctype html>\n<html><head>'+head+'</head><body>'+
+      document.getElementById('app-state').outerHTML +
+      '<div id="app"></div>' + scriptTag +
+      '</body></html>';
+  }
+  function showToast(msg){
+    var t = document.getElementById('toast');
+    if(!t){
+      t = document.createElement('div'); t.id='toast'; t.className='toast'; document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+  }
+  function persist(){
+    syncStateScript();
+    persistLocal();
+    if(!artifactCap){ return; }
+    artifactCap.publish(buildDocument()).catch(function(err){
+      var code = err && err.code;
+      if(code === 'conflict'){ return; }
+      if(code === 'not_writer' || code === 'not_granted' || code === 'consent_required'){
+        UI.readOnly = true; render();
+        return;
+      }
+      showToast('저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
+    });
+  }
+
+  // ---------- view range ----------
+  function computeRange(){
+    var today = todayDate();
+    var start = startOfMonth(addMonths(today, -1));
+    var end = endOfMonth(addMonths(today, 7));
+    STATE.projects.forEach(function(p){
+      var s = fromISO(p.start), e = fromISO(p.end);
+      if(s < start) start = startOfMonth(s);
+      if(e > end) end = endOfMonth(e);
+    });
+    return { start:start, end:end, days: diffDays(start,end)+1 };
+  }
+
+  // ---------- progress / dday ----------
+  function progressOf(p){
+    if(!p.checklist.length) return 0;
+    var done = p.checklist.filter(function(c){return c.done;}).length;
+    return done / p.checklist.length;
+  }
+  function ddayInfo(p){
+    var today = todayDate(), s = fromISO(p.start), e = fromISO(p.end);
+    var allDone = p.checklist.length && p.checklist.every(function(c){return c.done;});
+    if(allDone) return { cls:'done', text:'완료' };
+    if(today < s) return { cls:'upcoming', text:'D-'+diffDays(today, s) };
+    if(today > e) return { cls:'overdue', text:'지연 '+diffDays(e, today)+'일' };
+    var left = diffDays(today, e);
+    return { cls:'active', text: left===0 ? 'D-day' : 'D-'+left };
+  }
+
+  // ---------- render ----------
+  function el(html){
+    var t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild;
+  }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  }
+
+  function renderCard(p, idx){
+    var color = PROJ_COLORS[p.color % PROJ_COLORS.length];
+    var pct = Math.round(progressOf(p)*100);
+    var dd = ddayInfo(p);
+    var editing = UI.editingDates === p.id;
+    var menuOpen = UI.menuOpen === p.id;
+    var confirmingDelete = UI.confirmDelete === p.id;
+
+    var checklistHtml = p.checklist.map(function(c){
+      return '<div class="check-item '+(c.done?'done':'')+'">' +
+        '<input type="checkbox" '+(c.done?'checked':'')+' '+(UI.readOnly?'disabled':'')+' data-action="toggle-check" data-pid="'+p.id+'" data-cid="'+c.id+'">' +
+        '<span>'+escapeHtml(c.text)+'</span>' +
+        (UI.readOnly?'':'<button class="rm" data-action="rm-check" data-pid="'+p.id+'" data-cid="'+c.id+'" aria-label="항목 삭제">×</button>') +
+        '</div>';
+    }).join('');
+
+    var datesHtml = editing ?
+      '<div class="date-edit">' +
+        '<input type="date" id="edit-start-'+p.id+'" value="'+p.start+'">' +
+        '<span>→</span>' +
+        '<input type="date" id="edit-end-'+p.id+'" value="'+p.end+'">' +
+        '<button data-action="save-dates" data-pid="'+p.id+'">확인</button>' +
+        '<button class="cancel" data-action="cancel-dates">취소</button>' +
+      '</div>' :
+      '<div class="dates">' +
+        '<button data-action="edit-dates" data-pid="'+p.id+'" '+(UI.readOnly?'disabled':'')+'>'+fmtMD(fromISO(p.start))+' → '+fmtMD(fromISO(p.end))+'</button>' +
+      '</div>';
+
+    if(confirmingDelete){
+      return '<div class="card" style="align-items:center;justify-content:center;text-align:center;gap:10px;">' +
+        '<div style="font-size:13px;">‘'+escapeHtml(p.name)+'’ 프로젝트를 삭제할까요?</div>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<button class="btn-primary" style="background:var(--danger);" data-action="delete-project" data-pid="'+p.id+'">삭제</button>' +
+          '<button class="btn-ghost" data-action="cancel-delete">취소</button>' +
+        '</div></div>';
+    }
+
+    return '<div class="card">' +
+      '<div class="row1">' +
+        '<span class="dot" style="background:'+color+'"></span>' +
+        '<span class="name">'+escapeHtml(p.name)+'</span>' +
+        (p.example ? '<span class="example-chip">예시</span>' : '') +
+        (UI.readOnly ? '' : '<button class="menu-btn" data-action="toggle-menu" data-pid="'+p.id+'" aria-label="더 보기">⋯</button>') +
+      '</div>' +
+      (menuOpen ? '<div class="menu">' +
+        '<button data-action="delete-project-ask" data-pid="'+p.id+'">삭제</button>' +
+      '</div>' : '') +
+      '<div class="row2">' + datesHtml + '<span class="dday '+dd.cls+'">'+dd.text+'</span></div>' +
+      '<div class="progress-track"><div class="progress-fill" style="width:'+pct+'%;background:'+color+'"></div></div>' +
+      '<div class="progress-label">'+p.checklist.filter(function(c){return c.done;}).length+' / '+p.checklist.length+' 완료 · '+pct+'%</div>' +
+      '<div class="checklist">' + checklistHtml +
+        (UI.readOnly ? '' : '<div class="check-add"><span style="color:var(--ink-faint);font-size:12px;">+</span><input type="text" placeholder="체크리스트 항목 추가 후 Enter" data-action="add-check-input" data-pid="'+p.id+'"></div>') +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderAddSection(){
+    if(!UI.addOpen){
+      return '<div class="add-section">' +
+        '<button class="add-btn" data-action="open-add">+ 새 프로젝트</button>' +
+      '</div>';
+    }
+    if(UI.step === 'write'){
+      return '<div class="add-section"><div class="add-panel">' +
+        '<textarea id="draft-text" placeholder="예) 겨울 시즌 룩북 촬영, 11월 10일부터 12월 5일까지. 체크리스트: 컨셉 회의, 로케이션 헌팅, 촬영 진행, 리터칭, 최종 납품">'+(UI.lastDraftText?escapeHtml(UI.lastDraftText):'')+'</textarea>' +
+        '<div class="add-hint">프로젝트명, 기간, 체크리스트를 편하게 문장으로 적으면 자동으로 일정표에 반영돼요.</div>' +
+        (UI.parseError ? '<div class="error-msg">'+escapeHtml(UI.parseError)+'</div>' : '') +
+        '<div class="add-actions">' +
+          '<button class="btn-primary" data-action="parse-draft" '+(UI.busy?'disabled':'')+'>'+(UI.busy?'':'일정 생성')+'</button>' +
+          '<button class="btn-ghost" data-action="close-add">취소</button>' +
+        '</div>' +
+        (UI.busy ? '<div class="thinking"><span class="spinner"></span>내용을 읽고 일정을 구성하는 중…</div>' : '') +
+      '</div></div>';
+    }
+    // review step
+    var d = UI.draft;
+    return '<div class="add-section"><div class="review">' +
+      '<div class="field"><label>프로젝트명</label><input type="text" id="rv-name" value="'+escapeHtml(d.name)+'"></div>' +
+      '<div class="date-pair">' +
+        '<div class="field"><label>시작일</label><input type="date" id="rv-start" value="'+d.start+'"></div>' +
+        '<div class="field"><label>종료일</label><input type="date" id="rv-end" value="'+d.end+'"></div>' +
+      '</div>' +
+      '<div class="field"><label>체크리스트 (한 줄에 하나씩)</label><textarea id="rv-checklist">'+escapeHtml(d.checklist.join('\n'))+'</textarea></div>' +
+      '<div class="add-actions">' +
+        '<button class="btn-primary" data-action="confirm-add">일정표에 추가</button>' +
+        '<button class="btn-ghost" data-action="back-to-write">다시 작성</button>' +
+      '</div>' +
+    '</div></div>';
+  }
+
+  function renderRail(range){
+    var listHtml = STATE.projects.length ?
+      STATE.projects.map(renderCard).join('') :
+      '<div class="empty-rail">아직 프로젝트가 없어요.<br>아래 버튼으로 첫 프로젝트를 추가해 보세요.</div>';
+    return '<aside class="rail">' +
+      '<div class="rail-head"><span class="label">프로젝트</span><span class="count mono">'+STATE.projects.length+'</span></div>' +
+      '<div class="rail-list" id="rail-list">'+listHtml+'</div>' +
+      renderAddSection() +
+    '</aside>';
+  }
+
+  function renderTimeline(range){
+    var dayW = 30, totalW = range.days * dayW;
+    var today = todayDate();
+    var todayOffset = null;
+    if(today >= range.start && today <= range.end) todayOffset = diffDays(range.start, today)*dayW + dayW/2;
+
+    // month row
+    var monthCells = '';
+    var cursor = new Date(range.start);
+    while(cursor <= range.end){
+      var mEnd = endOfMonth(cursor);
+      if(mEnd > range.end) mEnd = range.end;
+      var span = diffDays(cursor, mEnd) + 1;
+      monthCells += '<div class="month-cell" style="width:'+(span*dayW)+'px">'+fmtMonthLabel(cursor)+'</div>';
+      cursor = addMonths(startOfMonth(cursor), 1);
+    }
+
+    // day row
+    var dayCells = '';
+    var weekLines = '';
+    for(var i=0;i<range.days;i++){
+      var d = addDays(range.start, i);
+      var isWeekend = d.getDay()===0 || d.getDay()===6;
+      var isToday = diffDays(d, today) === 0;
+      dayCells += '<div class="day-cell '+(isWeekend?'weekend':'')+' '+(isToday?'today':'')+'">' +
+        '<span class="dnum mono">'+d.getDate()+'</span><span class="dwk">'+WK[d.getDay()]+'</span></div>';
+      if(d.getDay()===1){ weekLines += '<div class="week-line" style="left:'+(i*dayW)+'px"></div>'; }
+    }
+
+    var rowsHtml = STATE.projects.map(function(p){
+      var s = fromISO(p.start), e = fromISO(p.end);
+      var left = diffDays(range.start, s) * dayW;
+      var width = (diffDays(s,e)+1) * dayW;
+      var color = PROJ_COLORS[p.color % PROJ_COLORS.length];
+      var pct = Math.round(progressOf(p)*100);
+      return '<div class="gantt-row">' +
+        '<div class="bar" style="left:'+left+'px;width:'+width+'px;background:'+color+'" title="'+escapeHtml(p.name)+' · '+p.start+' ~ '+p.end+' · '+pct+'%">' +
+          '<div class="bar-fill" style="width:'+pct+'%;background:#fff"></div>' +
+          '<div class="bar-track"><span class="bar-label">'+escapeHtml(p.name)+'</span><span class="bar-pct mono">'+pct+'%</span></div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    var todayLineHead = todayOffset !== null ? '<div class="today-line-head" style="left:'+todayOffset+'px"></div><div class="today-flag" style="left:'+todayOffset+'px">오늘</div>' : '';
+    var todayLineBody = todayOffset !== null ? '<div class="today-line-body" style="left:'+todayOffset+'px"></div>' : '';
+
+    return '<div class="timeline-panel">' +
+      '<div class="timeline-head-wrap" id="head-wrap"><div class="timeline-head" style="width:'+totalW+'px">' +
+        '<div class="month-row">'+monthCells+'</div>' +
+        '<div class="day-row">'+dayCells+'</div>' +
+        todayLineHead +
+      '</div></div>' +
+      '<div class="timeline-body-wrap" id="body-wrap"><div class="timeline-rows" style="width:'+totalW+'px;min-height:100%;">' +
+        weekLines + todayLineBody +
+        (STATE.projects.length ? rowsHtml : '<div class="empty-timeline-note">프로젝트를 추가하면 이곳에 일정 막대가 표시돼요.</div>') +
+      '</div></div>' +
+    '</div>';
+  }
+
+  function render(){
+    var range = computeRange();
+    var app = document.getElementById('app');
+
+    var prevBodyWrap = document.getElementById('body-wrap');
+    var prevRailList = document.getElementById('rail-list');
+    var savedScrollLeft = prevBodyWrap ? prevBodyWrap.scrollLeft : null;
+    var savedScrollTop = prevBodyWrap ? prevBodyWrap.scrollTop : null;
+
+    app.innerHTML =
+      '<div class="board">' +
+        '<div class="toolbar">' +
+          '<h1>스케줄 그리드</h1>' +
+          '<div class="tagline">동시에 진행되는 프로젝트의 체크리스트와 일정을 한 화면에서</div>' +
+          (UI.readOnly ? '<span class="readonly-pill">보기 전용</span>' : '') +
+          '<div class="today-badge mono">오늘 <b>'+toISO(todayDate())+'</b></div>' +
+        '</div>' +
+        '<div class="workspace">' +
+          renderRail(range) +
+          renderTimeline(range) +
+        '</div>' +
+      '</div>';
+
+    var bodyWrap = document.getElementById('body-wrap');
+    var headWrap = document.getElementById('head-wrap');
+    var railList = document.getElementById('rail-list');
+
+    if(!initialScrollDone){
+      initialScrollDone = true;
+      var today = todayDate();
+      var dayW = 30;
+      var offset = diffDays(range.start, today) * dayW;
+      bodyWrap.scrollLeft = Math.max(0, offset - bodyWrap.clientWidth * 0.28);
+      headWrap.scrollLeft = bodyWrap.scrollLeft;
+    } else if(savedScrollLeft !== null){
+      bodyWrap.scrollLeft = savedScrollLeft;
+      bodyWrap.scrollTop = savedScrollTop;
+      headWrap.scrollLeft = savedScrollLeft;
+      railList.scrollTop = savedScrollTop;
+    }
+
+    bindScrollSync(headWrap, bodyWrap, railList);
+    focusDraftIfNeeded();
+  }
+
+  function bindScrollSync(headWrap, bodyWrap, railList){
+    headWrap.addEventListener('scroll', function(){
+      if(scrollLock) return; scrollLock = true;
+      bodyWrap.scrollLeft = headWrap.scrollLeft;
+      scrollLock = false;
+    });
+    bodyWrap.addEventListener('scroll', function(){
+      if(scrollLock) return; scrollLock = true;
+      headWrap.scrollLeft = bodyWrap.scrollLeft;
+      railList.scrollTop = bodyWrap.scrollTop;
+      scrollLock = false;
+    });
+    railList.addEventListener('scroll', function(){
+      if(scrollLock) return; scrollLock = true;
+      bodyWrap.scrollTop = railList.scrollTop;
+      scrollLock = false;
+    });
+  }
+
+  function focusDraftIfNeeded(){
+    if(UI.addOpen && UI.step==='write' && UI.focusDraft){
+      var ta = document.getElementById('draft-text');
+      if(ta){ ta.focus(); if(UI.lastDraftText) ta.setSelectionRange(ta.value.length, ta.value.length); }
+      UI.focusDraft = false;
+    }
+  }
+
+  // ---------- parsing ----------
+  function heuristicParse(text){
+    var today = todayDate();
+    var lines = text.split(/\r?\n/).map(function(l){return l.trim();}).filter(Boolean);
+    var bulletRe = /^[-*•·ㆍ]\s*|^\d+[.)]\s*/;
+    var dateProbeRe = /(\d{4})[.\-\/년]\s*(\d{1,2})[.\-\/월]\s*(\d{1,2})일?|(\d{1,2})[.\/](\d{1,2})(?!\d)/;
+    function hasDate(line){ return dateProbeRe.test(line); }
+
+    var checklist = [], nameLine = '', restLines = [];
+    lines.forEach(function(line){
+      if(bulletRe.test(line)) checklist.push(line.replace(bulletRe,'').trim());
+      else restLines.push(line);
+    });
+
+    var dateExtractRe = /(\d{4})[.\-\/년]\s*(\d{1,2})[.\-\/월]\s*(\d{1,2})일?|(\d{1,2})[.\/](\d{1,2})(?!\d)/g;
+    var found = [], m;
+    var year = today.getFullYear();
+    while((m = dateExtractRe.exec(text))){
+      var mo, da;
+      if(m[1]){ year = parseInt(m[1],10); mo = parseInt(m[2],10); da = parseInt(m[3],10); }
+      else { mo = parseInt(m[4],10); da = parseInt(m[5],10); }
+      if(mo>=1 && mo<=12 && da>=1 && da<=31) found.push(new Date(year, mo-1, da));
+    }
+    found.sort(function(a,b){ return a-b; });
+    var start = found[0] || today;
+    var end = found[1] || addDays(start, 27);
+    if(end < start){ var tmp=start; start=end; end=tmp; }
+
+    restLines.forEach(function(line){
+      if(hasDate(line)) return;
+      if(!nameLine) nameLine = line.replace(/^(프로젝트명?|이름|제목)\s*[:：]\s*/,'');
+    });
+    if(!nameLine) nameLine = '새 프로젝트';
+    if(!checklist.length){
+      restLines.forEach(function(line){
+        if(line !== nameLine && !hasDate(line)) checklist.push(line.replace(/^(체크리스트|할\s*일)\s*[:：]\s*/,''));
+      });
+    }
+    return { name: nameLine, start: toISO(start), end: toISO(end), checklist: checklist.filter(Boolean) };
+  }
+
+  function parseDraft(text){
+    UI.busy = true; UI.parseError = null; render();
+    var todayISO = toISO(todayDate());
+    var prompt = '오늘 날짜는 '+todayISO+'입니다. 아래는 기획자가 자유롭게 쓴 프로젝트 설명입니다. ' +
+      '이 설명에서 프로젝트명, 시작일, 종료일, 체크리스트 항목들을 추출해서 JSON 객체 하나만 답하세요. ' +
+      '형식: {"name": string, "start": "YYYY-MM-DD", "end": "YYYY-MM-DD", "checklist": [string, ...]}. ' +
+      '규칙: 날짜는 반드시 YYYY-MM-DD 형식으로 계산할 것. "9월 둘째주부터 한달간"처럼 상대적인 표현은 오늘 날짜를 기준으로 계산할 것. ' +
+      '종료일이 명시되지 않으면 시작일로부터 4주 뒤로 추정할 것. 체크리스트가 명시되지 않으면 빈 배열로 둘 것. ' +
+      '다른 설명 없이 JSON 객체 하나만 출력할 것.\n\n프로젝트 설명:\n"""\n' + text + '\n"""';
+
+    function finish(draft){
+      UI.busy = false;
+      UI.draft = draft;
+      UI.step = 'review';
+      render();
+    }
+    function fail(){
+      UI.busy = false;
+      finish(heuristicParse(text));
+    }
+
+    if(!sampleCap){ fail(); return; }
+    sampleCap.json(prompt, { modelTier:'default' }).then(function(data){
+      if(!data || typeof data !== 'object' || !data.name || !data.start || !data.end){ fail(); return; }
+      var checklist = Array.isArray(data.checklist) ? data.checklist.map(String).filter(Boolean) : [];
+      finish({ name:String(data.name), start:String(data.start), end:String(data.end), checklist: checklist });
+    }).catch(function(err){
+      if(err && err.code === 'not_granted'){ sampleCap = null; }
+      fail();
+    });
+  }
+
+  // ---------- mutations ----------
+  function genId(prefix){ return prefix + Math.random().toString(36).slice(2,9); }
+
+  function addProject(name, start, end, checklistLines){
+    var usedColors = STATE.projects.map(function(p){return p.color;});
+    var color = 0;
+    for(var i=0;i<6;i++){ if(usedColors.indexOf(i)===-1){ color=i; break; } if(i===5) color = STATE.projects.length % 6; }
+    var checklist = checklistLines.map(function(t){ return { id: genId('c'), text: t, done:false }; });
+    STATE.projects.push({ id: genId('p'), name: name, color: color, start: start, end: end, example:false, checklist: checklist });
+    initialScrollDone = true;
+    persist();
+    render();
+  }
+
+  document.getElementById('app').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-action]');
+    if(!btn) return;
+    var action = btn.dataset.action;
+    var pid = btn.dataset.pid;
+
+    if(action === 'open-add'){ UI.addOpen = true; UI.step = 'write'; UI.focusDraft = true; render(); return; }
+    if(action === 'close-add'){ UI.addOpen = false; UI.parseError=null; UI.lastDraftText=null; render(); return; }
+    if(action === 'parse-draft'){
+      var ta = document.getElementById('draft-text');
+      var text = ta ? ta.value.trim() : '';
+      UI.lastDraftText = text;
+      if(!text){ UI.parseError = '프로젝트 내용을 먼저 입력해 주세요.'; render(); return; }
+      parseDraft(text);
+      return;
+    }
+    if(action === 'back-to-write'){ UI.step = 'write'; UI.focusDraft = true; render(); return; }
+    if(action === 'confirm-add'){
+      var name = document.getElementById('rv-name').value.trim() || '새 프로젝트';
+      var start = document.getElementById('rv-start').value;
+      var end = document.getElementById('rv-end').value;
+      var checklistText = document.getElementById('rv-checklist').value;
+      if(!start || !end){ return; }
+      if(end < start){ var t=start; start=end; end=t; }
+      var lines = checklistText.split('\n').map(function(l){return l.trim();}).filter(Boolean);
+      addProject(name, start, end, lines);
+      UI.addOpen = false; UI.step = 'write'; UI.draft = null; UI.lastDraftText = null;
+      render();
+      return;
+    }
+    if(action === 'toggle-check'){
+      var cid = btn.dataset.cid;
+      var proj = STATE.projects.find(function(p){return p.id===pid;});
+      var item = proj.checklist.find(function(c){return c.id===cid;});
+      item.done = !item.done;
+      persist(); render();
+      return;
+    }
+    if(action === 'rm-check'){
+      var cid2 = btn.dataset.cid;
+      var proj2 = STATE.projects.find(function(p){return p.id===pid;});
+      proj2.checklist = proj2.checklist.filter(function(c){return c.id!==cid2;});
+      persist(); render();
+      return;
+    }
+    if(action === 'toggle-menu'){ UI.menuOpen = (UI.menuOpen===pid) ? null : pid; render(); return; }
+    if(action === 'delete-project-ask'){ UI.menuOpen = null; UI.confirmDelete = pid; render(); return; }
+    if(action === 'cancel-delete'){ UI.confirmDelete = null; render(); return; }
+    if(action === 'delete-project'){
+      STATE.projects = STATE.projects.filter(function(p){return p.id!==pid;});
+      UI.confirmDelete = null;
+      persist(); render();
+      return;
+    }
+    if(action === 'edit-dates'){ UI.editingDates = pid; render(); return; }
+    if(action === 'cancel-dates'){ UI.editingDates = null; render(); return; }
+    if(action === 'save-dates'){
+      var s = document.getElementById('edit-start-'+pid).value;
+      var en = document.getElementById('edit-end-'+pid).value;
+      if(s && en){
+        if(en < s){ var tt=s; s=en; en=tt; }
+        var pr = STATE.projects.find(function(p){return p.id===pid;});
+        pr.start = s; pr.end = en;
+      }
+      UI.editingDates = null;
+      persist(); render();
+      return;
+    }
+  });
+
+  document.getElementById('app').addEventListener('keydown', function(e){
+    if(e.target.matches('[data-action="add-check-input"]') && e.key==='Enter'){
+      e.preventDefault();
+      var text = e.target.value.trim();
+      if(!text) return;
+      var pid = e.target.dataset.pid;
+      var proj = STATE.projects.find(function(p){return p.id===pid;});
+      proj.checklist.push({ id: genId('c'), text: text, done:false });
+      persist(); render();
+    }
+  });
+
+  // ---------- boot ----------
+  function boot(){
+    STATE = loadState();
+    if(!STATE || !Array.isArray(STATE.projects)) STATE = { projects: [] };
+    render();
+    if(window.claude && typeof window.claude.use === 'function'){
+      window.claude.use('artifact').then(function(cap){ artifactCap = cap; }).catch(function(){});
+      window.claude.use('sample').then(function(cap){ sampleCap = cap; }).catch(function(){});
+    }
+  }
+  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', boot); } else { boot(); }
+})();
+</script>
