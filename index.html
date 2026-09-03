@@ -238,13 +238,9 @@ input, textarea{ font-family:inherit; color:var(--ink); }
 }
 </style>
 
-<script id="app-state" type="application/json">
-{"projects":[{"id":"p1","name":"가을 컨퍼런스 초청장 디자인","color":0,"start":"2026-08-16","end":"2026-09-05","example":true,"checklist":[{"id":"c1","text":"인쇄소 견적 비교","done":true},{"id":"c2","text":"컨셉 시안 3종 제작","done":true},{"id":"c3","text":"클라이언트 컨펌","done":true},{"id":"c4","text":"인쇄 데이터 최종 점검","done":true},{"id":"c5","text":"발송 리스트 정리","done":false}],"subcategories":[]},{"id":"p2","name":"모바일 앱 UX 개편","color":1,"start":"2026-09-09","end":"2026-10-31","example":true,"checklist":[{"id":"c6","text":"사용자 인터뷰 8건 진행","done":false},{"id":"c7","text":"정보구조(IA) 재설계","done":false},{"id":"c8","text":"핵심 플로우 와이어프레임","done":false},{"id":"c9","text":"프로토타입 사용성 테스트","done":false},{"id":"c10","text":"개발팀 핸드오프 문서화","done":false}],"subcategories":[]},{"id":"p3","name":"가을 캠페인 브랜드 리뉴얼","color":2,"start":"2026-07-25","end":"2026-12-07","example":true,"checklist":[{"id":"c11","text":"브랜드 리서치 및 경쟁사 분석","done":true},{"id":"c12","text":"컨셉 무드보드 3안","done":true},{"id":"c13","text":"네이밍 및 슬로건 확정","done":true},{"id":"c14","text":"클라이언트 1차 리뷰","done":false},{"id":"c15","text":"디자인 시스템 정리","done":false},{"id":"c16","text":"최종 가이드라인 납품","done":false}],"subcategories":[{"id":"s1","name":"리서치 단계","start":"2026-07-25","end":"2026-08-15"},{"id":"s2","name":"디자인 단계","start":"2026-08-16","end":"2026-10-05"},{"id":"s3","name":"실행 단계","start":"2026-10-06","end":"2026-12-07"}]}]}
-</script>
-
 <div id="app"></div>
 
-<script id="app-script">
+<script>
 (function(){
   "use strict";
   var STATE = null;
@@ -290,32 +286,24 @@ input, textarea{ font-family:inherit; color:var(--ink); }
   var WK = ['일','월','화','수','목','금','토'];
 
   // ---------- state io ----------
+  // DEFAULT_STATE seeds a fresh browser/artifact copy. Once real data exists (in localStorage,
+  // or in the artifact's own data/state.json file), that always wins over this seed.
+  var DEFAULT_STATE = {"projects":[{"id":"p1","name":"가을 컨퍼런스 초청장 디자인","color":0,"start":"2026-08-16","end":"2026-09-05","example":true,"checklist":[{"id":"c1","text":"인쇄소 견적 비교","done":true},{"id":"c2","text":"컨셉 시안 3종 제작","done":true},{"id":"c3","text":"클라이언트 컨펌","done":true},{"id":"c4","text":"인쇄 데이터 최종 점검","done":true},{"id":"c5","text":"발송 리스트 정리","done":false}],"subcategories":[]},{"id":"p2","name":"모바일 앱 UX 개편","color":1,"start":"2026-09-09","end":"2026-10-31","example":true,"checklist":[{"id":"c6","text":"사용자 인터뷰 8건 진행","done":false},{"id":"c7","text":"정보구조(IA) 재설계","done":false},{"id":"c8","text":"핵심 플로우 와이어프레임","done":false},{"id":"c9","text":"프로토타입 사용성 테스트","done":false},{"id":"c10","text":"개발팀 핸드오프 문서화","done":false}],"subcategories":[]},{"id":"p3","name":"가을 캠페인 브랜드 리뉴얼","color":2,"start":"2026-07-25","end":"2026-12-07","example":true,"checklist":[{"id":"c11","text":"브랜드 리서치 및 경쟁사 분석","done":true},{"id":"c12","text":"컨셉 무드보드 3안","done":true},{"id":"c13","text":"네이밍 및 슬로건 확정","done":true},{"id":"c14","text":"클라이언트 1차 리뷰","done":false},{"id":"c15","text":"디자인 시스템 정리","done":false},{"id":"c16","text":"최종 가이드라인 납품","done":false}],"subcategories":[{"id":"s1","name":"리서치 단계","start":"2026-07-25","end":"2026-08-15"},{"id":"s2","name":"디자인 단계","start":"2026-08-16","end":"2026-10-05"},{"id":"s3","name":"실행 단계","start":"2026-10-06","end":"2026-12-07"}]}]};
+
+  function normalizeState(s){
+    if(!s || !Array.isArray(s.projects)) s = { projects: [] };
+    s.projects.forEach(function(p){ if(!Array.isArray(p.subcategories)) p.subcategories = []; });
+    return s;
+  }
   function loadState(){
-    var fallback = null;
-    try{
-      var raw = document.getElementById('app-state').textContent;
-      fallback = JSON.parse(raw);
-    }catch(e){ fallback = { projects: [] }; }
     try{
       var local = localStorage.getItem('scheduleGridState');
-      if(local){ return JSON.parse(local); }
+      if(local) return normalizeState(JSON.parse(local));
     }catch(e){}
-    return fallback;
+    return normalizeState(JSON.parse(JSON.stringify(DEFAULT_STATE)));
   }
   function persistLocal(){
     try{ localStorage.setItem('scheduleGridState', JSON.stringify(STATE)); }catch(e){}
-  }
-  function syncStateScript(){
-    var json = JSON.stringify(STATE).replace(/</g,'\\u003c');
-    document.getElementById('app-state').textContent = json;
-  }
-  function buildDocument(){
-    var head = document.head.innerHTML;
-    var scriptTag = document.getElementById('app-script').outerHTML;
-    return '<!doctype html>\n<html><head>'+head+'</head><body>'+
-      document.getElementById('app-state').outerHTML +
-      '<div id="app"></div>' + scriptTag +
-      '</body></html>';
   }
   function showToast(msg){
     var t = document.getElementById('toast');
@@ -327,13 +315,15 @@ input, textarea{ font-family:inherit; color:var(--ink); }
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2600);
   }
+  // Uses the files-form of artifact.publish: it writes only data/state.json and does
+  // NOT reload this view (unlike a whole-document publish), so an edit never interrupts
+  // whatever the person is doing on screen.
   function persist(){
-    syncStateScript();
     persistLocal();
     if(!artifactCap){ return; }
-    artifactCap.publish(buildDocument()).catch(function(err){
+    artifactCap.publish({ 'data/state.json': JSON.stringify(STATE) }).catch(function(err){
       var code = err && err.code;
-      if(code === 'conflict'){ return; }
+      if(code === 'conflict' || code === 'capability_disabled'){ return; }
       if(code === 'not_writer' || code === 'not_granted' || code === 'consent_required'){
         UI.readOnly = true; render();
         return;
@@ -902,13 +892,18 @@ input, textarea{ font-family:inherit; color:var(--ink); }
   // ---------- boot ----------
   function boot(){
     STATE = loadState();
-    if(!STATE || !Array.isArray(STATE.projects)) STATE = { projects: [] };
-    STATE.projects.forEach(function(p){ if(!Array.isArray(p.subcategories)) p.subcategories = []; });
     try{
       var savedZoom = parseInt(localStorage.getItem('scheduleGridZoom'), 10);
       if(savedZoom >= 0 && savedZoom < ZOOM_LEVELS.length){ zoomIndex = savedZoom; dayW = ZOOM_LEVELS[zoomIndex]; }
     }catch(e){}
     render();
+    // Pick up the shared copy (edits from another viewer, or this browser's own
+    // last save) if the artifact has one; falls back silently to the local/seed copy.
+    fetch('data/state.json', { cache:'no-store' }).then(function(res){
+      return (res && res.ok) ? res.json() : null;
+    }).then(function(remote){
+      if(remote){ STATE = normalizeState(remote); persistLocal(); render(); }
+    }).catch(function(){});
     if(window.claude && typeof window.claude.use === 'function'){
       window.claude.use('artifact').then(function(cap){ artifactCap = cap; }).catch(function(){});
       window.claude.use('sample').then(function(cap){ sampleCap = cap; }).catch(function(){});
