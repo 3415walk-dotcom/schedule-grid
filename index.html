@@ -11,6 +11,7 @@
   --danger:#C23B2E;
   --dark:#181B16; --dark-2:#22271F; --on-dark:#F1F3EC; --on-dark-soft:#A9AF9E;
   --proj-0:#178F53; --proj-1:#4C6FE0; --proj-2:#A6741F; --proj-3:#8B5FBF; --proj-4:#4E7488; --proj-5:#B04A62;
+  --proj-0-tint:#8BC7A9; --proj-1-tint:#A5B7EF; --proj-2-tint:#D2B98F; --proj-3-tint:#C5AFDF; --proj-4-tint:#A6B9C3; --proj-5-tint:#D7A4B0;
   --shadow: 0 1px 2px rgba(25,29,23,.05), 0 10px 28px rgba(25,29,23,.08);
   --shadow-dark: 0 10px 30px rgba(10,12,8,.35);
   --row-h: 150px; --row-gap: 12px; --head-h: 60px; --day-w: 30px; --rail-w: 336px;
@@ -58,7 +59,7 @@ input, textarea{ font-family:inherit; color:var(--ink); }
 .rail-list::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:4px; }
 
 .card{
-  flex:0 0 var(--row-h); height:var(--row-h); display:flex; flex-direction:column; gap:7px;
+  flex:0 0 auto; display:flex; flex-direction:column; gap:7px;
   padding:13px 14px; border-radius:14px; background:var(--surface); box-shadow:var(--shadow);
   position:relative;
 }
@@ -107,6 +108,38 @@ input, textarea{ font-family:inherit; color:var(--ink); }
 
 .empty-rail{ padding:26px 16px; text-align:center; color:var(--ink-soft); font-size:13px; line-height:1.6; }
 
+/* --- subcategories --- */
+.sub-divider{ height:26px; box-sizing:border-box; flex:0 0 auto; display:flex; align-items:center; gap:6px;
+  font-size:10px; font-weight:600; letter-spacing:.04em; color:var(--ink-faint); text-transform:uppercase;
+  border-top:1px dashed var(--line); padding-top:7px; }
+.sub-list{ flex:0 0 auto; display:flex; flex-direction:column; gap:4px; }
+.sub-item{ height:28px; box-sizing:border-box; flex:0 0 auto; display:flex; align-items:center; gap:6px; font-size:11.5px; }
+.sub-item .sub-dot{ width:6px; height:6px; border-radius:50%; flex:0 0 auto; }
+.sub-item .sub-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sub-item .sub-dates{ color:var(--ink-soft); font-size:10.5px; flex:0 0 auto; }
+.sub-item .sub-dates button{ border:none; background:none; padding:1px 3px; border-radius:4px; color:inherit; font:inherit; }
+.sub-item .sub-dates button:hover{ background:var(--surface-3); color:var(--ink); }
+.sub-item .sub-rm{ border:none; background:none; color:var(--ink-faint); font-size:12px; opacity:0; flex:0 0 auto; padding:0 2px; }
+.sub-item:hover .sub-rm{ opacity:1; }
+.sub-item .sub-rm:hover{ color:var(--danger); }
+.sub-date-edit{ display:flex; align-items:center; gap:3px; }
+.sub-date-edit input{ border:1px solid var(--line-strong); border-radius:4px; padding:1px 3px; font-size:10px; background:var(--surface); width:80px; }
+.sub-date-edit button{ border:none; background:var(--accent); color:#fff; border-radius:4px; padding:1px 5px; font-size:10px; font-weight:600; }
+.sub-date-edit .cancel{ background:none; color:var(--ink-soft); }
+.sub-add-row{ height:26px; box-sizing:border-box; flex:0 0 auto; display:flex; align-items:center; }
+.sub-add-btn{ border:none; background:none; color:var(--accent-ink); font-size:11.5px; font-weight:600; padding:0; }
+.sub-add-btn:hover{ text-decoration:underline; }
+.sub-add-form{ height:56px; box-sizing:border-box; flex:0 0 auto; display:flex; flex-direction:column;
+  justify-content:space-between; padding:2px 0; }
+.sub-add-form .line1 input{ width:100%; border:1px solid var(--line-strong); border-radius:6px; padding:3px 7px;
+  font-size:11.5px; background:var(--surface); }
+.sub-add-form .line2{ display:flex; align-items:center; gap:5px; }
+.sub-add-form .line2 input{ border:1px solid var(--line-strong); border-radius:6px; padding:2px 4px; font-size:10.5px;
+  background:var(--surface); width:96px; }
+.sub-add-form .line2 button{ border:none; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:600; }
+.sub-add-form .confirm{ background:var(--accent); color:#fff; }
+.sub-add-form .cancel{ background:none; color:var(--ink-soft); }
+
 /* --- add section --- */
 .add-section{ flex:0 0 auto; padding:12px; }
 .add-btn{ width:100%; display:flex; align-items:center; gap:10px; padding:7px 16px 7px 7px; border-radius:999px;
@@ -145,7 +178,16 @@ input, textarea{ font-family:inherit; color:var(--ink); }
 
 /* --- timeline --- */
 .timeline-panel{ flex:1; min-width:0; display:flex; flex-direction:column; min-height:0; overflow:hidden;
-  background:var(--surface); border-radius:16px; box-shadow:var(--shadow); }
+  background:var(--surface); border-radius:16px; box-shadow:var(--shadow); position:relative; }
+.zoom-controls{ position:absolute; top:12px; right:14px; z-index:15; display:flex; align-items:center; gap:1px;
+  background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:3px; box-shadow:var(--shadow); }
+.zoom-btn{ width:24px; height:24px; border-radius:50%; border:none; background:none; color:var(--ink-soft); font-size:14px;
+  display:flex; align-items:center; justify-content:center; line-height:1; }
+.zoom-btn:hover:not(:disabled){ background:var(--surface-2); color:var(--ink); }
+.zoom-btn:disabled{ opacity:.3; }
+.zoom-today-btn{ border:none; background:none; color:var(--ink-soft); font-size:11px; font-weight:600; padding:0 10px;
+  border-left:1px solid var(--line); margin-left:2px; height:24px; }
+.zoom-today-btn:hover{ color:var(--accent-ink); }
 .timeline-head-wrap{ flex:0 0 var(--head-h); height:var(--head-h); overflow:hidden auto; border-bottom:1px solid var(--line); position:relative; }
 .timeline-head-wrap::-webkit-scrollbar{ display:none; }
 .timeline-head{ position:relative; height:100%; }
@@ -171,14 +213,17 @@ input, textarea{ font-family:inherit; color:var(--ink); }
 .timeline-rows{ position:relative; padding:var(--row-gap) 0 16px; }
 .week-line{ position:absolute; top:0; bottom:0; width:1px; background:var(--line); z-index:0; }
 .today-line-body{ position:absolute; top:0; bottom:0; width:2px; background:var(--today); z-index:1; }
-.gantt-row{ flex:0 0 var(--row-h); height:var(--row-h); position:relative; margin-bottom:var(--row-gap); }
+.gantt-row{ flex:0 0 auto; position:relative; margin-bottom:var(--row-gap); }
 .gantt-row:last-child{ margin-bottom:0; }
-.bar{ position:absolute; top:50%; transform:translateY(-50%); height:38px; border-radius:8px; overflow:hidden;
+.bar{ position:absolute; height:36px; border-radius:8px; overflow:hidden;
   box-shadow:var(--shadow); min-width:10px; }
 .bar-fill{ position:absolute; inset:0; opacity:.32; }
 .bar-track{ position:absolute; inset:0; display:flex; align-items:center; padding:0 10px; gap:6px; }
 .bar-label{ font-size:12px; font-weight:600; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-shadow:0 1px 2px rgba(0,0,0,.25); }
 .bar-pct{ margin-left:auto; font-size:10.5px; color:#fff; opacity:.9; flex:0 0 auto; }
+.sub-bar{ position:absolute; height:20px; border-radius:6px; overflow:hidden; min-width:8px;
+  display:flex; align-items:center; padding:0 7px; font-size:10px; font-weight:600; color:var(--ink);
+  white-space:nowrap; text-overflow:ellipsis; }
 .empty-timeline-note{ position:absolute; top:16px; left:16px; font-size:12.5px; color:var(--ink-faint); }
 
 .toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--bg);
@@ -194,7 +239,7 @@ input, textarea{ font-family:inherit; color:var(--ink); }
 </style>
 
 <script id="app-state" type="application/json">
-{"projects":[{"id":"p1","name":"가을 컨퍼런스 초청장 디자인","color":0,"start":"2026-08-16","end":"2026-09-05","example":true,"checklist":[{"id":"c1","text":"인쇄소 견적 비교","done":true},{"id":"c2","text":"컨셉 시안 3종 제작","done":true},{"id":"c3","text":"클라이언트 컨펌","done":true},{"id":"c4","text":"인쇄 데이터 최종 점검","done":true},{"id":"c5","text":"발송 리스트 정리","done":false}]},{"id":"p2","name":"모바일 앱 UX 개편","color":1,"start":"2026-09-09","end":"2026-10-31","example":true,"checklist":[{"id":"c6","text":"사용자 인터뷰 8건 진행","done":false},{"id":"c7","text":"정보구조(IA) 재설계","done":false},{"id":"c8","text":"핵심 플로우 와이어프레임","done":false},{"id":"c9","text":"프로토타입 사용성 테스트","done":false},{"id":"c10","text":"개발팀 핸드오프 문서화","done":false}]},{"id":"p3","name":"가을 캠페인 브랜드 리뉴얼","color":2,"start":"2026-07-25","end":"2026-12-07","example":true,"checklist":[{"id":"c11","text":"브랜드 리서치 및 경쟁사 분석","done":true},{"id":"c12","text":"컨셉 무드보드 3안","done":true},{"id":"c13","text":"네이밍 및 슬로건 확정","done":true},{"id":"c14","text":"클라이언트 1차 리뷰","done":false},{"id":"c15","text":"디자인 시스템 정리","done":false},{"id":"c16","text":"최종 가이드라인 납품","done":false}]}]}
+{"projects":[{"id":"p1","name":"가을 컨퍼런스 초청장 디자인","color":0,"start":"2026-08-16","end":"2026-09-05","example":true,"checklist":[{"id":"c1","text":"인쇄소 견적 비교","done":true},{"id":"c2","text":"컨셉 시안 3종 제작","done":true},{"id":"c3","text":"클라이언트 컨펌","done":true},{"id":"c4","text":"인쇄 데이터 최종 점검","done":true},{"id":"c5","text":"발송 리스트 정리","done":false}],"subcategories":[]},{"id":"p2","name":"모바일 앱 UX 개편","color":1,"start":"2026-09-09","end":"2026-10-31","example":true,"checklist":[{"id":"c6","text":"사용자 인터뷰 8건 진행","done":false},{"id":"c7","text":"정보구조(IA) 재설계","done":false},{"id":"c8","text":"핵심 플로우 와이어프레임","done":false},{"id":"c9","text":"프로토타입 사용성 테스트","done":false},{"id":"c10","text":"개발팀 핸드오프 문서화","done":false}],"subcategories":[]},{"id":"p3","name":"가을 캠페인 브랜드 리뉴얼","color":2,"start":"2026-07-25","end":"2026-12-07","example":true,"checklist":[{"id":"c11","text":"브랜드 리서치 및 경쟁사 분석","done":true},{"id":"c12","text":"컨셉 무드보드 3안","done":true},{"id":"c13","text":"네이밍 및 슬로건 확정","done":true},{"id":"c14","text":"클라이언트 1차 리뷰","done":false},{"id":"c15","text":"디자인 시스템 정리","done":false},{"id":"c16","text":"최종 가이드라인 납품","done":false}],"subcategories":[{"id":"s1","name":"리서치 단계","start":"2026-07-25","end":"2026-08-15"},{"id":"s2","name":"디자인 단계","start":"2026-08-16","end":"2026-10-05"},{"id":"s3","name":"실행 단계","start":"2026-10-06","end":"2026-12-07"}]}]}
 </script>
 
 <div id="app"></div>
@@ -203,13 +248,32 @@ input, textarea{ font-family:inherit; color:var(--ink); }
 (function(){
   "use strict";
   var STATE = null;
-  var UI = { addOpen:false, step:'write', draft:null, menuOpen:null, editingDates:null, confirmDelete:null, busy:false };
+  var UI = { addOpen:false, step:'write', draft:null, menuOpen:null, editingDates:null, confirmDelete:null, busy:false,
+    addingSub:null, editingSubDates:null };
   var artifactCap = null, sampleCap = null;
   var initialScrollDone = false;
   var scrollLock = false;
   var toastTimer = null;
 
   var PROJ_COLORS = ['var(--proj-0)','var(--proj-1)','var(--proj-2)','var(--proj-3)','var(--proj-4)','var(--proj-5)'];
+  var PROJ_TINTS = ['var(--proj-0-tint)','var(--proj-1-tint)','var(--proj-2-tint)','var(--proj-3-tint)','var(--proj-4-tint)','var(--proj-5-tint)'];
+
+  // ---------- zoom ----------
+  var ZOOM_LEVELS = [14, 18, 24, 30, 40, 54];
+  var zoomIndex = 3;
+  var dayW = ZOOM_LEVELS[zoomIndex];
+
+  // ---------- card / row layout constants (kept identical between rail cards and gantt rows) ----------
+  var BASE_H = 150;
+  var SUB_ROW_H = 28, SUB_GAP = 4, DIVIDER_H = 26, ADD_ROW_H = 26, SUB_FORM_H = 56;
+  function bottomBlockH(p){
+    var count = p.subcategories.length;
+    var footer = (UI.addingSub === p.id) ? SUB_FORM_H : ADD_ROW_H;
+    var listH = count ? count*(SUB_ROW_H+SUB_GAP) - SUB_GAP : 0; // N rows + (N-1) gaps
+    return DIVIDER_H + listH + footer;
+  }
+  var CARD_GAP = 7; // matches .card's flex `gap` — the one gap between the checklist and the sub-section
+  function blockHeight(p){ return BASE_H + CARD_GAP + bottomBlockH(p); }
 
   // ---------- date helpers ----------
   function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -324,6 +388,7 @@ input, textarea{ font-family:inherit; color:var(--ink); }
     var editing = UI.editingDates === p.id;
     var menuOpen = UI.menuOpen === p.id;
     var confirmingDelete = UI.confirmDelete === p.id;
+    var h = blockHeight(p);
 
     var checklistHtml = p.checklist.map(function(c){
       return '<div class="check-item '+(c.done?'done':'')+'">' +
@@ -346,7 +411,7 @@ input, textarea{ font-family:inherit; color:var(--ink); }
       '</div>';
 
     if(confirmingDelete){
-      return '<div class="card" style="align-items:center;justify-content:center;text-align:center;gap:10px;">' +
+      return '<div class="card" style="height:'+h+'px;align-items:center;justify-content:center;text-align:center;gap:10px;">' +
         '<div style="font-size:13px;">‘'+escapeHtml(p.name)+'’ 프로젝트를 삭제할까요?</div>' +
         '<div style="display:flex;gap:8px;">' +
           '<button class="btn-primary" style="background:var(--danger);" data-action="delete-project" data-pid="'+p.id+'">삭제</button>' +
@@ -354,7 +419,44 @@ input, textarea{ font-family:inherit; color:var(--ink); }
         '</div></div>';
     }
 
-    return '<div class="card">' +
+    var subItemsHtml = p.subcategories.map(function(sub){
+      var editingSub = UI.editingSubDates === (p.id+':'+sub.id);
+      var subDatesHtml = editingSub ?
+        '<div class="sub-date-edit">' +
+          '<input type="date" id="sub-edit-start-'+sub.id+'" value="'+sub.start+'">' +
+          '<input type="date" id="sub-edit-end-'+sub.id+'" value="'+sub.end+'">' +
+          '<button data-action="save-sub-dates" data-pid="'+p.id+'" data-sid="'+sub.id+'">✓</button>' +
+          '<button class="cancel" data-action="cancel-sub-dates">×</button>' +
+        '</div>' :
+        '<button data-action="edit-sub-dates" data-pid="'+p.id+'" data-sid="'+sub.id+'" '+(UI.readOnly?'disabled':'')+'>'+fmtMD(fromISO(sub.start))+' → '+fmtMD(fromISO(sub.end))+'</button>';
+      return '<div class="sub-item">' +
+        '<span class="sub-dot" style="background:'+color+'"></span>' +
+        '<span class="sub-name">'+escapeHtml(sub.name)+'</span>' +
+        '<span class="sub-dates">'+subDatesHtml+'</span>' +
+        (UI.readOnly?'':'<button class="sub-rm" data-action="rm-sub" data-pid="'+p.id+'" data-sid="'+sub.id+'" aria-label="하위 카테고리 삭제">×</button>') +
+      '</div>';
+    }).join('');
+
+    var addingSub = UI.addingSub === p.id;
+    var subFooterHtml = UI.readOnly ? '' : (addingSub ?
+      '<div class="sub-add-form">' +
+        '<div class="line1"><input type="text" id="sub-name-'+p.id+'" placeholder="하위 카테고리 이름"></div>' +
+        '<div class="line2">' +
+          '<input type="date" id="sub-start-'+p.id+'" value="'+p.start+'">' +
+          '<input type="date" id="sub-end-'+p.id+'" value="'+p.end+'">' +
+          '<button class="confirm" data-action="confirm-add-sub" data-pid="'+p.id+'">추가</button>' +
+          '<button class="cancel" data-action="cancel-add-sub">취소</button>' +
+        '</div>' +
+      '</div>' :
+      '<div class="sub-add-row"><button class="sub-add-btn" data-action="open-add-sub" data-pid="'+p.id+'">+ 하위 카테고리</button></div>');
+
+    var subSectionHtml = '<div class="sub-section">' +
+      '<div class="sub-divider">하위 카테고리'+(p.subcategories.length?' · '+p.subcategories.length:'')+'</div>' +
+      (subItemsHtml ? '<div class="sub-list">'+subItemsHtml+'</div>' : '') +
+      subFooterHtml +
+    '</div>';
+
+    return '<div class="card" style="height:'+h+'px">' +
       '<div class="row1">' +
         '<span class="dot" style="background:'+color+'"></span>' +
         '<span class="name">'+escapeHtml(p.name)+'</span>' +
@@ -370,6 +472,7 @@ input, textarea{ font-family:inherit; color:var(--ink); }
       '<div class="checklist">' + checklistHtml +
         (UI.readOnly ? '' : '<div class="check-add"><span style="color:var(--ink-faint);font-size:12px;">+</span><input type="text" placeholder="체크리스트 항목 추가 후 Enter" data-action="add-check-input" data-pid="'+p.id+'"></div>') +
       '</div>' +
+      subSectionHtml +
     '</div>';
   }
 
@@ -422,10 +525,11 @@ input, textarea{ font-family:inherit; color:var(--ink); }
   }
 
   function renderTimeline(range){
-    var dayW = 30, totalW = range.days * dayW;
+    var totalW = range.days * dayW;
     var today = todayDate();
     var todayOffset = null;
     if(today >= range.start && today <= range.end) todayOffset = diffDays(range.start, today)*dayW + dayW/2;
+    var showWeekday = dayW >= 20;
 
     // month row
     var monthCells = '';
@@ -446,28 +550,50 @@ input, textarea{ font-family:inherit; color:var(--ink); }
       var isWeekend = d.getDay()===0 || d.getDay()===6;
       var isToday = diffDays(d, today) === 0;
       dayCells += '<div class="day-cell '+(isWeekend?'weekend':'')+' '+(isToday?'today':'')+'">' +
-        '<span class="dnum mono">'+d.getDate()+'</span><span class="dwk">'+WK[d.getDay()]+'</span></div>';
+        '<span class="dnum mono">'+d.getDate()+'</span>'+(showWeekday?'<span class="dwk">'+WK[d.getDay()]+'</span>':'') +
+        '</div>';
       if(d.getDay()===1){ weekLines += '<div class="week-line" style="left:'+(i*dayW)+'px"></div>'; }
     }
 
     var rowsHtml = STATE.projects.map(function(p){
+      var h = blockHeight(p);
       var s = fromISO(p.start), e = fromISO(p.end);
       var left = diffDays(range.start, s) * dayW;
       var width = (diffDays(s,e)+1) * dayW;
       var color = PROJ_COLORS[p.color % PROJ_COLORS.length];
+      var tint = PROJ_TINTS[p.color % PROJ_TINTS.length];
       var pct = Math.round(progressOf(p)*100);
-      return '<div class="gantt-row">' +
-        '<div class="bar" style="left:'+left+'px;width:'+width+'px;background:'+color+'" title="'+escapeHtml(p.name)+' · '+p.start+' ~ '+p.end+' · '+pct+'%">' +
+
+      var parentBar = '<div class="bar" style="left:'+left+'px;top:16px;width:'+width+'px;background:'+color+'" title="'+escapeHtml(p.name)+' · '+p.start+' ~ '+p.end+' · '+pct+'%">' +
           '<div class="bar-fill" style="width:'+pct+'%;background:#fff"></div>' +
           '<div class="bar-track"><span class="bar-label">'+escapeHtml(p.name)+'</span><span class="bar-pct mono">'+pct+'%</span></div>' +
-        '</div>' +
-      '</div>';
+        '</div>';
+
+      var count = p.subcategories.length;
+      var subListTop = h - bottomBlockH(p) + DIVIDER_H;
+      var subBarsHtml = p.subcategories.map(function(sub, i){
+        var ss = fromISO(sub.start), se = fromISO(sub.end);
+        var sleft = diffDays(range.start, ss) * dayW;
+        var swidth = (diffDays(ss,se)+1) * dayW;
+        var rowTop = subListTop + i*(SUB_ROW_H+SUB_GAP);
+        var barTop = rowTop + (SUB_ROW_H-20)/2;
+        return '<div class="sub-bar" style="left:'+sleft+'px;top:'+barTop+'px;width:'+swidth+'px;background:'+tint+'" title="'+escapeHtml(sub.name)+' · '+sub.start+' ~ '+sub.end+'">'+escapeHtml(sub.name)+'</div>';
+      }).join('');
+
+      return '<div class="gantt-row" style="height:'+h+'px">' + parentBar + subBarsHtml + '</div>';
     }).join('');
 
     var todayLineHead = todayOffset !== null ? '<div class="today-line-head" style="left:'+todayOffset+'px"></div><div class="today-flag" style="left:'+todayOffset+'px">오늘</div>' : '';
     var todayLineBody = todayOffset !== null ? '<div class="today-line-body" style="left:'+todayOffset+'px"></div>' : '';
 
+    var zoomControls = '<div class="zoom-controls">' +
+        '<button class="zoom-btn" data-action="zoom-out" '+(zoomIndex<=0?'disabled':'')+' aria-label="캘린더 축소">−</button>' +
+        '<button class="zoom-today-btn" data-action="jump-today">오늘</button>' +
+        '<button class="zoom-btn" data-action="zoom-in" '+(zoomIndex>=ZOOM_LEVELS.length-1?'disabled':'')+' aria-label="캘린더 확대">+</button>' +
+      '</div>';
+
     return '<div class="timeline-panel">' +
+      zoomControls +
       '<div class="timeline-head-wrap" id="head-wrap"><div class="timeline-head" style="width:'+totalW+'px">' +
         '<div class="month-row">'+monthCells+'</div>' +
         '<div class="day-row">'+dayCells+'</div>' +
@@ -480,12 +606,13 @@ input, textarea{ font-family:inherit; color:var(--ink); }
     '</div>';
   }
 
-  function render(){
+  function render(opts){
+    opts = opts || {};
     var range = computeRange();
     var app = document.getElementById('app');
+    document.documentElement.style.setProperty('--day-w', dayW+'px');
 
     var prevBodyWrap = document.getElementById('body-wrap');
-    var prevRailList = document.getElementById('rail-list');
     var savedScrollLeft = prevBodyWrap ? prevBodyWrap.scrollLeft : null;
     var savedScrollTop = prevBodyWrap ? prevBodyWrap.scrollTop : null;
 
@@ -510,10 +637,15 @@ input, textarea{ font-family:inherit; color:var(--ink); }
     if(!initialScrollDone){
       initialScrollDone = true;
       var today = todayDate();
-      var dayW = 30;
       var offset = diffDays(range.start, today) * dayW;
       bodyWrap.scrollLeft = Math.max(0, offset - bodyWrap.clientWidth * 0.28);
       headWrap.scrollLeft = bodyWrap.scrollLeft;
+    } else if(opts.centerDay != null){
+      var target = Math.max(0, opts.centerDay*dayW - bodyWrap.clientWidth/2);
+      bodyWrap.scrollLeft = target;
+      headWrap.scrollLeft = target;
+      bodyWrap.scrollTop = savedScrollTop;
+      railList.scrollTop = savedScrollTop;
     } else if(savedScrollLeft !== null){
       bodyWrap.scrollLeft = savedScrollLeft;
       bodyWrap.scrollTop = savedScrollTop;
@@ -633,7 +765,7 @@ input, textarea{ font-family:inherit; color:var(--ink); }
     var color = 0;
     for(var i=0;i<6;i++){ if(usedColors.indexOf(i)===-1){ color=i; break; } if(i===5) color = STATE.projects.length % 6; }
     var checklist = checklistLines.map(function(t){ return { id: genId('c'), text: t, done:false }; });
-    STATE.projects.push({ id: genId('p'), name: name, color: color, start: start, end: end, example:false, checklist: checklist });
+    STATE.projects.push({ id: genId('p'), name: name, color: color, start: start, end: end, example:false, checklist: checklist, subcategories: [] });
     initialScrollDone = true;
     persist();
     render();
@@ -644,7 +776,18 @@ input, textarea{ font-family:inherit; color:var(--ink); }
     if(!btn) return;
     var action = btn.dataset.action;
     var pid = btn.dataset.pid;
+    var sid = btn.dataset.sid;
 
+    if(action === 'zoom-in' || action === 'zoom-out'){
+      var bw = document.getElementById('body-wrap');
+      var centerDay = bw ? (bw.scrollLeft + bw.clientWidth/2) / dayW : null;
+      zoomIndex = Math.max(0, Math.min(ZOOM_LEVELS.length-1, zoomIndex + (action==='zoom-in'?1:-1)));
+      dayW = ZOOM_LEVELS[zoomIndex];
+      try{ localStorage.setItem('scheduleGridZoom', zoomIndex); }catch(err){}
+      render({ centerDay: centerDay });
+      return;
+    }
+    if(action === 'jump-today'){ initialScrollDone = false; render(); return; }
     if(action === 'open-add'){ UI.addOpen = true; UI.step = 'write'; UI.focusDraft = true; render(); return; }
     if(action === 'close-add'){ UI.addOpen = false; UI.parseError=null; UI.lastDraftText=null; render(); return; }
     if(action === 'parse-draft'){
@@ -707,6 +850,41 @@ input, textarea{ font-family:inherit; color:var(--ink); }
       persist(); render();
       return;
     }
+    if(action === 'open-add-sub'){ UI.addingSub = pid; render(); return; }
+    if(action === 'cancel-add-sub'){ UI.addingSub = null; render(); return; }
+    if(action === 'confirm-add-sub'){
+      var subName = document.getElementById('sub-name-'+pid).value.trim();
+      var subStart = document.getElementById('sub-start-'+pid).value;
+      var subEnd = document.getElementById('sub-end-'+pid).value;
+      if(!subName || !subStart || !subEnd){ return; }
+      if(subEnd < subStart){ var st=subStart; subStart=subEnd; subEnd=st; }
+      var subProj = STATE.projects.find(function(p){return p.id===pid;});
+      subProj.subcategories.push({ id: genId('s'), name: subName, start: subStart, end: subEnd });
+      UI.addingSub = null;
+      persist(); render();
+      return;
+    }
+    if(action === 'rm-sub'){
+      var rmProj = STATE.projects.find(function(p){return p.id===pid;});
+      rmProj.subcategories = rmProj.subcategories.filter(function(s){return s.id!==sid;});
+      persist(); render();
+      return;
+    }
+    if(action === 'edit-sub-dates'){ UI.editingSubDates = pid+':'+sid; render(); return; }
+    if(action === 'cancel-sub-dates'){ UI.editingSubDates = null; render(); return; }
+    if(action === 'save-sub-dates'){
+      var ss = document.getElementById('sub-edit-start-'+sid).value;
+      var se = document.getElementById('sub-edit-end-'+sid).value;
+      if(ss && se){
+        if(se < ss){ var st2=ss; ss=se; se=st2; }
+        var editProj = STATE.projects.find(function(p){return p.id===pid;});
+        var editSub = editProj.subcategories.find(function(s){return s.id===sid;});
+        editSub.start = ss; editSub.end = se;
+      }
+      UI.editingSubDates = null;
+      persist(); render();
+      return;
+    }
   });
 
   document.getElementById('app').addEventListener('keydown', function(e){
@@ -725,6 +903,11 @@ input, textarea{ font-family:inherit; color:var(--ink); }
   function boot(){
     STATE = loadState();
     if(!STATE || !Array.isArray(STATE.projects)) STATE = { projects: [] };
+    STATE.projects.forEach(function(p){ if(!Array.isArray(p.subcategories)) p.subcategories = []; });
+    try{
+      var savedZoom = parseInt(localStorage.getItem('scheduleGridZoom'), 10);
+      if(savedZoom >= 0 && savedZoom < ZOOM_LEVELS.length){ zoomIndex = savedZoom; dayW = ZOOM_LEVELS[zoomIndex]; }
+    }catch(e){}
     render();
     if(window.claude && typeof window.claude.use === 'function'){
       window.claude.use('artifact').then(function(cap){ artifactCap = cap; }).catch(function(){});
